@@ -1,0 +1,5 @@
+C:\Users\nmri\Documents\shunsuke\cs\nmri\CurEachShip\S1-ShipLogToS1\obj\Debug\net6.0\S1-ShipLogToS1.csproj.AssemblyReference.cache
+C:\Users\nmri\Documents\shunsuke\cs\nmri\CurEachShip\S1-ShipLogToS1\obj\Debug\net6.0\S1-ShipLogToS1.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\nmri\Documents\shunsuke\cs\nmri\CurEachShip\S1-ShipLogToS1\obj\Debug\net6.0\S1-ShipLogToS1.AssemblyInfoInputs.cache
+C:\Users\nmri\Documents\shunsuke\cs\nmri\CurEachShip\S1-ShipLogToS1\obj\Debug\net6.0\S1-ShipLogToS1.AssemblyInfo.cs
+C:\Users\nmri\Documents\shunsuke\cs\nmri\CurEachShip\S1-ShipLogToS1\obj\Debug\net6.0\S1-ShipLogToS1.csproj.CoreCompileInputs.cache
