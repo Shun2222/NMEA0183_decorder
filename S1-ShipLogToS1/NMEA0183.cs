@@ -56,12 +56,38 @@ $--HDT,x.x,T* hh
 3) Checksum
 */
 
+/*VTG 対地ベクトル
+1) Track Degrees
+2) T = True
+3) Track Degrees
+4) M = Magnetic
+5) Speed Knots
+6) N = Knots
+7) Speed Kilometers Per Hour
+8) K = Kilometres Per Hour
+9) Checksum
+*/
+
+/*RMC 対地ベクトル
+1) Track Degrees
+2) T = True
+3) Track Degrees
+4) M = Magnetic
+5) Speed Knots
+6) N = Knots
+7) Speed Kilometers Per Hour
+8) K = Kilometres Per Hour
+9) Checksum
+*/
+
+
 public enum enNMEAResult
 {
     IsSentenceErr = -3,
     IsVBW = 1,
     IsGGA = 2,
     IsHDT = 3,
+    IsVTG = 4,
     IsCheckSumErr = -5
 }
 
@@ -80,6 +106,13 @@ public struct HDTData
 {
     public double HeadDeg;
 }
+
+public struct VTGData 
+{
+    public double HeadDeg;
+    public double GroundSpeed;
+}
+
 public struct NMEACode
 {
     public enNMEAResult Result;
@@ -87,6 +120,7 @@ public struct NMEACode
     public VBWData vbwData; 
     public GGAData ggaData; 
     public HDTData hdtData; 
+    public VTGData vtgData; 
 }
 
 class NMEADecoding
@@ -100,10 +134,12 @@ class NMEADecoding
         if (ret.Result == enNMEAResult.IsGGA) return ret;
         ret = HDTCheck(sentence);
         if (ret.Result == enNMEAResult.IsHDT) return ret;
+        ret = VTGCheck(sentence);
+        if (ret.Result == enNMEAResult.IsVTG) return ret;
 
         return ret;
     }
-    public NMEACode VBWCheck(string sentence) 
+    public NMEACode VBWCheck(string sentence)
     {
         //Regex re = new Regex(@"\$(?<forCheck>..VBW,(?<num1>\d + (\.\d+)?),(?<num2>\d),A,(?<num3>\d),(?<num4>\d),.(?<fillbits>[0-5]))\*(?<checksum>[0-9a-fA-F]{2})");
         Regex re = new Regex(@"\$(?<forCheck>..VBW,(?<num1>[\d.]*),(?<num2>[\d.]*),A,(?<num3>[\d.]*),(?<num4>[\d.]*),.)\*(?<checksum>[0-9a-fA-F]{2})");
@@ -150,7 +186,7 @@ class NMEADecoding
         foreach (char c in s) b ^= Convert.ToByte(c);  // ^はべき乗ではなくxor
         return b.ToString("X2");
     }
-    public NMEACode GGACheck(string sentence) 
+    public NMEACode GGACheck(string sentence)
     {
         string pattern = @"^\$(?<forCheck>..GGA,*,(?<num1>[\d.]*),(?<str1>[N|S]{1}),(?<num2>[\d.]*),(?<str2>[E|W]{1}),*,*,*,*,*,*,*,*,*,)\*(?<checksum>[0-9a-fA-F]{2})";
         Regex re = new Regex(pattern);
@@ -197,7 +233,7 @@ class NMEADecoding
         ret.ggaData = ggaData;
         return ret;
     }
-    public NMEACode HDTCheck(string sentence) 
+    public NMEACode HDTCheck(string sentence)
     {
         string pattern = @"^\$(?<forCheck>..HDT,*,(?<num1>[\d.]*),T)\*(?<checksum>[0-9a-fA-F]{2})";
         Regex re = new Regex(pattern);
@@ -232,6 +268,71 @@ class NMEADecoding
         HDTData hdtData = new HDTData();
         hdtData.HeadDeg = num1;
         ret.hdtData = hdtData;
+        return ret;
+    }
+
+    public NMEACode VTGCheck(string sentence) 
+    {
+    
+
+        Regex re = new Regex(@"\$(?<forCheck>..VTG,(?<num1>[\d.]*),(?<str1>[T]*),(?<num2>[\d.]*),(?<str2>[T]*),(?<num3>[\d.]*),(?<str3>[N]*),(?<num4>[\d.]*),(?<str4>[K]*))\*(?<checksum>[0-9a-fA-F]{2})");
+        //Regex re = new Regex(@"\$(?<forCheck>..VTG,(?<num1>[0-9.]*),(?<str1>[T]*),(?<num2>[0-9.]*),(?<str2>[N]*),(?<num3>[0-9.]*),(?<str3>[K]*))\*(?<checksum>[0-9a-fA-F]{2})");
+
+        NMEACode ret = new NMEACode();
+        double headDeg, groundSpeed;
+        string str1, str2, str3, str4, checksum, forCheck;
+
+        // センテンスの解読
+        Match m = re.Match(sentence);
+        str1 = m.Groups["str1"].Value;
+        str2 = m.Groups["str2"].Value;
+        str3 = m.Groups["str3"].Value;
+        str4 = m.Groups["str4"].Value;
+
+        checksum = m.Groups["checksum"].Value;
+        forCheck = m.Groups["forCheck"].Value;
+        if (!m.Success)
+        {
+            ret.Result = enNMEAResult.IsSentenceErr;
+            return ret;
+        }
+
+        if (!double.TryParse(m.Groups["num1"].Value, out headDeg))
+        {
+            if (!double.TryParse(m.Groups["num2"].Value, out headDeg))
+            {
+                headDeg = -999;
+            }
+        }
+
+        bool isNot = true;
+        if (!double.TryParse(m.Groups["num3"].Value, out groundSpeed))
+        {
+            isNot = false;
+            if (!double.TryParse(m.Groups["num4"].Value, out groundSpeed))
+            {
+                groundSpeed = -999;
+            }
+        }
+        if (!isNot && groundSpeed!=-999) 
+        {
+
+            groundSpeed *= 0.539956;
+        }
+
+
+        //チェックサムのチェック
+        if (CheckSum(forCheck) != checksum)
+        {
+            ret.Result = enNMEAResult.IsCheckSumErr;
+            return ret;
+        }
+
+        ret.Result = enNMEAResult.IsVTG;
+        VTGData vtgData = new VTGData();
+        vtgData.HeadDeg = headDeg;
+        vtgData.GroundSpeed = groundSpeed;
+        ret.vtgData = vtgData;
         return ret;
     }
 }

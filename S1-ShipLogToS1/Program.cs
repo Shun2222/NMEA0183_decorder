@@ -148,6 +148,14 @@ class Program
                                         ""
                                         );
                                     break;
+                                case enNMEAResult.IsVTG:
+                                    VTGData vtgData = code.vtgData;
+                                    swOut.WriteLine(
+                                        dt.ToUniversalTime().ToString() + ",VTG," +
+                                        vtgData.HeadDeg.ToString("000.0") + "," + 
+                                        vtgData.GroundSpeed.ToString("000.0") 
+                                        );
+                                    break;
                                 default:
                                     break;
                             }
@@ -201,7 +209,7 @@ class Program
 
     }
 
-    static Regex rvbw1 = new Regex(@"^(?<JST>\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}:\d{2}\.\d{3}),[^$]*(?<sentence>\$..(VBW|GGA|HDT),[^*]+\*([0-9A-Fa-f]{2}))$");
+    static Regex rvbw1 = new Regex(@"^(?<JST>\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}:\d{2}\.\d{3}),[^$]*(?<sentence>\$..(VBW|GGA|HDT|VTG),[^*]+\*([0-9A-Fa-f]{2}))$");
     static Regex rvbw2 = new Regex(@"^(?<UTC>\d{14}),(?<sentence>$..(VBW|GGA|HDT)+)$");   // 東洋信号log型
 
     static bool GetNMEAsentence(string line, out DateTime dt, out string sentence)
