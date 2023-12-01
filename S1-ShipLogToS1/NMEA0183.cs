@@ -80,6 +80,10 @@ $--HDT,x.x,T* hh
 9) Checksum
 */
 
+/*
+ *VHW water speed
+ */
+
 
 public enum enNMEAResult
 {
@@ -88,6 +92,7 @@ public enum enNMEAResult
     IsGGA = 2,
     IsHDT = 3,
     IsVTG = 4,
+    IsVHW = 5,
     IsCheckSumErr = -5
 }
 
@@ -112,7 +117,11 @@ public struct VTGData
     public double HeadDeg;
     public double GroundSpeed;
 }
-
+public struct VHWData 
+{
+    public double HeadDeg;
+    public double WaterSpeed;
+}
 public struct NMEACode
 {
     public enNMEAResult Result;
@@ -121,6 +130,7 @@ public struct NMEACode
     public GGAData ggaData; 
     public HDTData hdtData; 
     public VTGData vtgData; 
+    public VHWData vhwData; 
 }
 
 class NMEADecoding
@@ -136,6 +146,8 @@ class NMEADecoding
         if (ret.Result == enNMEAResult.IsHDT) return ret;
         ret = VTGCheck(sentence);
         if (ret.Result == enNMEAResult.IsVTG) return ret;
+        ret = VHWCheck(sentence);
+        if (ret.Result == enNMEAResult.IsVHW) return ret;
 
         return ret;
     }
@@ -143,16 +155,25 @@ class NMEADecoding
     {
         //Regex re = new Regex(@"\$(?<forCheck>..VBW,(?<num1>\d + (\.\d+)?),(?<num2>\d),A,(?<num3>\d),(?<num4>\d),.(?<fillbits>[0-5]))\*(?<checksum>[0-9a-fA-F]{2})");
         Regex re = new Regex(@"\$(?<forCheck>..VBW,(?<num1>[\d.]*),(?<num2>[\d.]*),A,(?<num3>[\d.]*),(?<num4>[\d.]*),.)\*(?<checksum>[0-9a-fA-F]{2})");
+        Regex re2 = new Regex(@"\$(?<forCheck>..VBW,(?<num1>[\d.]*),(?<num2>[\d.]*),A,(?<num3>[\d.]*),(?<num4>[\d.]*),.,*,.,*,.)\*(?<checksum>[0-9a-fA-F]{2})");
         NMEACode ret = new NMEACode();
         double num1, num2;
         string checksum, forCheck;
 
         // センテンスの解読
         Match m = re.Match(sentence);
+        Match m2 = re2.Match(sentence);
         if (!m.Success)
         {
-            ret.Result = enNMEAResult.IsSentenceErr;
-            return ret;
+            if (!m2.Success)
+            {
+                ret.Result = enNMEAResult.IsSentenceErr;
+                return ret;
+            }
+            else
+            {
+                m = m2;
+            }
         }
         if (!double.TryParse(m.Groups["num1"].Value, out num1))
         {
@@ -188,7 +209,7 @@ class NMEADecoding
     }
     public NMEACode GGACheck(string sentence)
     {
-        string pattern = @"^\$(?<forCheck>..GGA,*,(?<num1>[\d.]*),(?<str1>[N|S]{1}),(?<num2>[\d.]*),(?<str2>[E|W]{1}),*,*,*,*,*,*,*,*,*,)\*(?<checksum>[0-9a-fA-F]{2})";
+        string pattern = @"^\$(?<forCheck>..GGA,(?<num0>[\d.]*),(?<num1>[\d.]*),(?<str1>[N|S]{1}),(?<num2>[\d.]*),(?<str2>[E|W]{1}),(?<num3>\d*),(?<num4>\d*),(?<num5>[\d.]*),(?<num6>[\d.]*),(?<str3>[M]*),(?<num7>[\d.]*),(?<str4>[M]*),(?<num8>[\d.]*),(?<num9>[\d]*))\*(?<checksum>[0-9a-fA-F]{2})";
         Regex re = new Regex(pattern);
 
         NMEACode ret = new NMEACode();
@@ -275,7 +296,8 @@ class NMEADecoding
     {
     
 
-        Regex re = new Regex(@"\$(?<forCheck>..VTG,(?<num1>[\d.]*),(?<str1>[T]*),(?<num2>[\d.]*),(?<str2>[T]*),(?<num3>[\d.]*),(?<str3>[N]*),(?<num4>[\d.]*),(?<str4>[K]*))\*(?<checksum>[0-9a-fA-F]{2})");
+        Regex re = new Regex(@"\$(?<forCheck>..VTG,(?<num1>[\d.]*),(?<str1>[T]*),(?<num2>[\d.]*),(?<str2>[M]*),(?<num3>[\d.]*),(?<str3>[N]*),(?<num4>[\d.]*),(?<str4>[K]*))\*(?<checksum>[0-9a-fA-F]{2})");
+        Regex re2 = new Regex(@"\$(?<forCheck>..VTG,(?<num1>[\d.]*),(?<str1>[T]*),(?<num2>[\d.]*),(?<str2>[M]*),(?<num3>[\d.]*),(?<str3>[N]*),(?<num4>[\d.]*),(?<str4>[K]*),(?<str5>[D]*))\*(?<checksum>[0-9a-fA-F]{2})");
         //Regex re = new Regex(@"\$(?<forCheck>..VTG,(?<num1>[0-9.]*),(?<str1>[T]*),(?<num2>[0-9.]*),(?<str2>[N]*),(?<num3>[0-9.]*),(?<str3>[K]*))\*(?<checksum>[0-9a-fA-F]{2})");
 
         NMEACode ret = new NMEACode();
@@ -284,6 +306,19 @@ class NMEADecoding
 
         // センテンスの解読
         Match m = re.Match(sentence);
+        Match m2 = re2.Match(sentence);
+        if (!m.Success)
+        {
+            if (!m2.Success)
+            {
+                ret.Result = enNMEAResult.IsSentenceErr;
+                return ret;
+            }
+            else
+            {
+                m = m2;
+            }
+        }
         str1 = m.Groups["str1"].Value;
         str2 = m.Groups["str2"].Value;
         str3 = m.Groups["str3"].Value;
@@ -291,11 +326,6 @@ class NMEADecoding
 
         checksum = m.Groups["checksum"].Value;
         forCheck = m.Groups["forCheck"].Value;
-        if (!m.Success)
-        {
-            ret.Result = enNMEAResult.IsSentenceErr;
-            return ret;
-        }
 
         if (!double.TryParse(m.Groups["num1"].Value, out headDeg))
         {
@@ -333,6 +363,60 @@ class NMEADecoding
         vtgData.HeadDeg = headDeg;
         vtgData.GroundSpeed = groundSpeed;
         ret.vtgData = vtgData;
+        return ret;
+    }
+    public NMEACode VHWCheck(string sentence)
+    {
+        Regex re = new Regex(@"\$(?<forCheck>..VHW,(?<num1>[\d.]*),(?<str>[T]*),(?<num2>[\d.]*),(?<str2>[M]*),(?<num3>[\d.]*),(?<str3>[N]*),(?<num4>[\d.]*),.)\*(?<checksum>[0-9a-fA-F]{2})");
+        NMEACode ret = new NMEACode();
+        double waterSpeed, headDeg;
+        string checksum, forCheck;
+
+        // センテンスの解読
+        Match m = re.Match(sentence);
+        if (!m.Success)
+        {
+            ret.Result = enNMEAResult.IsSentenceErr;
+            return ret;
+        }
+
+        if (!double.TryParse(m.Groups["num1"].Value, out headDeg))
+        {
+            if (!double.TryParse(m.Groups["num2"].Value, out headDeg))
+            {
+                headDeg = -999;
+            }
+        }
+        bool isNot = true;
+        if (!double.TryParse(m.Groups["num3"].Value, out waterSpeed))
+        {
+            isNot = false;
+            if (!double.TryParse(m.Groups["num4"].Value, out waterSpeed))
+            {
+                waterSpeed = -999;
+            }
+        }
+        if (!isNot && waterSpeed!=-999) 
+        {
+
+            waterSpeed *= 0.539956;
+        }
+
+        checksum = m.Groups["checksum"].Value;
+        forCheck = m.Groups["forCheck"].Value;
+
+        //チェックサムのチェック
+        if (CheckSum(forCheck) != checksum)
+        {
+            ret.Result = enNMEAResult.IsCheckSumErr;
+            return ret;
+        }
+
+        ret.Result = enNMEAResult.IsVHW;
+        VHWData vhwData = new VHWData();
+        vhwData.HeadDeg = headDeg;
+        vhwData.WaterSpeed = waterSpeed;
+        ret.vhwData = vhwData;
         return ret;
     }
 }

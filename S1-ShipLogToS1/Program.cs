@@ -136,8 +136,8 @@ class Program
                                     GGAData ggaData = code.ggaData;
                                     swOut.WriteLine(
                                         dt.ToUniversalTime().ToString() + ",GGA," +
-                                        ggaData.Lat.ToString("0000.000") + "," +
-                                        ggaData.Lon.ToString("0000.000")
+                                        ggaData.Lat.ToString("0000.0000") + "," +
+                                        ggaData.Lon.ToString("0000.0000")
                                         );
                                     break;
                                 case enNMEAResult.IsHDT:
@@ -154,6 +154,14 @@ class Program
                                         dt.ToUniversalTime().ToString() + ",VTG," +
                                         vtgData.HeadDeg.ToString("000.0") + "," + 
                                         vtgData.GroundSpeed.ToString("000.0") 
+                                        );
+                                    break;
+                                case enNMEAResult.IsVHW:
+                                    VHWData vhwData = code.vhwData;
+                                    swOut.WriteLine(
+                                        dt.ToUniversalTime().ToString() + ",VHW," +
+                                        vhwData.HeadDeg.ToString("000.0") + "," + 
+                                        vhwData.WaterSpeed.ToString("000.0") 
                                         );
                                     break;
                                 default:
@@ -209,7 +217,7 @@ class Program
 
     }
 
-    static Regex rvbw1 = new Regex(@"^(?<JST>\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}:\d{2}\.\d{3}),[^$]*(?<sentence>\$..(VBW|GGA|HDT|VTG),[^*]+\*([0-9A-Fa-f]{2}))$");
+    static Regex rvbw1 = new Regex(@"^(?<JST>\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}:\d{2}\.\d{3}),[^$]*(?<sentence>\$..(VBW|GGA|HDT|VTG|VHW),[^*]+\*([0-9A-Fa-f]{2}))$");
     static Regex rvbw2 = new Regex(@"^(?<UTC>\d{14}),(?<sentence>$..(VBW|GGA|HDT)+)$");   // 東洋信号log型
 
     static bool GetNMEAsentence(string line, out DateTime dt, out string sentence)

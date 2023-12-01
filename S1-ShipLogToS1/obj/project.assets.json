@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\nmri\\Documents\\shunsuke\\cs\\nmri\\CurEachShip\\S1-ShipLogToS1\\S1-ShipLogToS1.csproj",
+      "projectUniqueName": "C:\\Users\\nmri\\Documents\\shunsuke\\cs\\CurEachShip\\S1-ShipLogToS1\\S1-ShipLogToS1.csproj",
       "projectName": "S1-ShipLogToS1",
-      "projectPath": "C:\\Users\\nmri\\Documents\\shunsuke\\cs\\nmri\\CurEachShip\\S1-ShipLogToS1\\S1-ShipLogToS1.csproj",
+      "projectPath": "C:\\Users\\nmri\\Documents\\shunsuke\\cs\\CurEachShip\\S1-ShipLogToS1\\S1-ShipLogToS1.csproj",
       "packagesPath": "C:\\Users\\nmri\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\nmri\\Documents\\shunsuke\\cs\\nmri\\CurEachShip\\S1-ShipLogToS1\\obj\\",
+      "outputPath": "C:\\Users\\nmri\\Documents\\shunsuke\\cs\\CurEachShip\\S1-ShipLogToS1\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\nmri\\AppData\\Roaming\\NuGet\\NuGet.Config",
