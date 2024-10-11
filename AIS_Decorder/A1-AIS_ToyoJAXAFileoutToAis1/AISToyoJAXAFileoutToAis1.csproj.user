@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <StartArguments>C:\Users\mitsuru\Desktop\科研費\H26AIS\AIS海流解析\AISDecodeツール\テストデータ\Japan_20150101000000-20150101015959.log -l 10000</StartArguments>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <StartArguments>C:\Users\mitsuru\Desktop\第八十七東洋丸FileOut20151127-0420.txt</StartArguments>
+  </PropertyGroup>
+</Project>

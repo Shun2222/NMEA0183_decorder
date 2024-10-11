@@ -1,0 +1,1 @@
+C:\Users\mitsuru\Desktop\科研費\H26AIS\AIS海流解析\AISDecodeツール\A6-Ais4ToParameterSpeedUpCost\bin\Release\A6-Ais4ToParameter.exe.config

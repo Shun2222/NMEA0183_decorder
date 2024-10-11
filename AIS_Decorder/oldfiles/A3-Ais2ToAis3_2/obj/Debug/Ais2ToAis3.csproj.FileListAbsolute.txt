@@ -1,0 +1,8 @@
+E:\shunsukeE\AIS_Decorder\A3-Ais2ToAis3_2\bin\Debug\Ais2ToAis3.exe.config
+E:\shunsukeE\AIS_Decorder\A3-Ais2ToAis3_2\bin\Debug\Ais2ToAis3.exe
+E:\shunsukeE\AIS_Decorder\A3-Ais2ToAis3_2\bin\Debug\Ais2ToAis3.pdb
+E:\shunsukeE\AIS_Decorder\A3-Ais2ToAis3_2\obj\Debug\Ais2ToAis3.csproj.AssemblyReference.cache
+E:\shunsukeE\AIS_Decorder\A3-Ais2ToAis3_2\obj\Debug\Ais2ToAis3.csproj.SuggestedBindingRedirects.cache
+E:\shunsukeE\AIS_Decorder\A3-Ais2ToAis3_2\obj\Debug\Ais2ToAis3.csproj.CoreCompileInputs.cache
+E:\shunsukeE\AIS_Decorder\A3-Ais2ToAis3_2\obj\Debug\Ais2ToAis3.exe
+E:\shunsukeE\AIS_Decorder\A3-Ais2ToAis3_2\obj\Debug\Ais2ToAis3.pdb

@@ -1,0 +1,2 @@
+C:\Users\mitsuru\Desktop\科研費\H26AIS\AIS海流解析\AISDecodeツール\AisCmpToAisCurrent\bin\Debug\AisCmpToAisCurrent.exe.config
+C:\Users\mitsuru\Desktop\科研費\H26AIS\AIS海流解析\AISDecodeツール\A5-Ais4ToAisCurr\bin\Debug\AisCmpToAisCurrent.exe.config

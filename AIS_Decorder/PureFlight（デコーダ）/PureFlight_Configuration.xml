@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+  <!-- プログラム実行モード [Debug / Release] -->
+  <mode>RELEASE</mode>
+  <!-- 管理者情報 -->
+  <manager>
+    <mail_address>yaniwa@nmri.go.jp</mail_address>
+    <smtp_host_name>172.17.0.3</smtp_host_name>
+  </manager>
+  <!-- ソースZIPファイル -->
+  <log>
+    <!-- 絶対パスで指定 -->
+    <file_name>C:\PureFlight\PureFlight_Log.txt</file_name>
+  </log>
+  <source>
+    <!-- 絶対パスで指定 -->
+    <folder_name>Z:\</folder_name>
+  </source>
+  <!-- ZIP解凍 -->
+  <unzip>
+    <!-- 展開先一時フォルダを絶対パスで指定 -->
+    <temporary_folder_name>D:\AIS_Temp</temporary_folder_name>
+  </unzip>
+  <!-- AISデータデコード -->
+  <decode>
+    <!-- デコードプログラム[aisdecode2LonLat.exe]を絶対パスで指定 -->
+    <!-- (実行に必要なDLL[cygwin1.dll・cyggcc_s-1.dll・cygstdc++-6.dll]も同じフォルダに設置すること) -->
+    <program_file_name>C:\PureFlight\aisdecode2LonLat.exe</program_file_name>
+  </decode>
+</configuration>
+    
