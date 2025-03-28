@@ -324,7 +324,97 @@ namespace CurrentEstim
                 //Console.WriteLine(s); // REMOVE
                 return allres;
             }
-            public ArrayList brokenMmsiAllComb(Dictionary<UInt32, (VEC, VEC)> mmsiVecDict)
+
+            public List<UInt32> brokenMmsiAllComb(Dictionary<UInt32, (VEC, VEC)> mmsiVecDict)
+            {
+                //  すべてのMMSIの組み合わせで偏流値を計算し、あるMMSIを含むMMSIがすべて異常な偏流値である場合、そのMMSIを異常船と判定する
+
+                List<UInt32> res = new List<UInt32>();
+                string s = "ALL Mmsi";
+
+                // mmsiの数が４つ以下は異常判定しない（船が少ないとまともな偏流値が計算できず、誤って異常判定する可能性があるため）
+                int num_mmsi = (int)mmsiVecDict.Count;
+                if (num_mmsi < 4)
+                {
+                    return res;
+                }
+
+                List<UInt32> keymap = new List<UInt32>();
+                List<int> mmsiGoodCount = new List<int>(); // 正常と判定された回数
+                List<int> mmsiBadCount = new List<int>(); // 異常と判定された回数
+                foreach (KeyValuePair<UInt32, (VEC, VEC)> dicItem in mmsiVecDict)
+                {
+                    s += dicItem.Key.ToString() + ", ";
+                    keymap.Add(dicItem.Key);
+                    mmsiGoodCount.Add(0);
+                    mmsiBadCount.Add(0);
+                }
+
+                List<XY> xylist = new List<XY>();
+                XY xy = new XY();
+                bool isExistGoodPair = false;
+                bool isExistBadPair = false;
+
+                // 1~num_mmsi-1 の個のMMSIの全組み合わせで偏流値を計算し、偏流値が正常・異常を判定 (1個のMMSIの組み合わせはいるのか？)
+                for (int i = num_mmsi - 1; i >= 0; i--)
+                {
+                    // 組み合わせの生成
+                    List<List<int>> comb = Combination.Generate(num_mmsi, i, false);
+                    foreach (List<int> list in comb)
+                    {
+                        // 組み合わせ内のすべてのMMSIが一回以上正常と判定されていた場合は異常調査しない
+                        List<UInt32> mmsis = new List<UInt32>();
+                        bool isAllGoodMmsi = true;
+                        foreach (int mmsikey in list)
+                        {
+                            mmsis.Add(keymap[mmsikey]);
+                            if (mmsiGoodCount[mmsikey] == 0)
+                            {
+                                isAllGoodMmsi = false;
+                            }
+                        }
+
+                        if (isAllGoodMmsi) continue;
+
+                        // 組み合わせのMMSIで偏流値を計算
+                        xy = calcCurLSMTargetMmsi(mmsiVecDict, mmsis);
+
+                        // 偏流値が正常ならMMSIの正常と判定された回数を１増やす
+                        if (isValidCurValue(xy))
+                        {
+                            foreach (int mmsikey in list)
+                            {
+                                mmsiGoodCount[mmsikey] += 1;
+                            }
+                            isExistGoodPair = true;
+                        }
+                        else
+                        {
+                            foreach (int mmsikey in list)
+                            {
+                                mmsiBadCount[mmsikey] += 1;
+                            }
+                            isExistBadPair = true;
+                        }
+                    }
+                }
+
+                // 一度も正常と判定されず、一回以上異常と判定された場合は異常船とする
+                if (isExistGoodPair && isExistBadPair)
+                {
+                    for (int i = 0; i < mmsiGoodCount.Count; i++)
+                    {
+                        if (mmsiGoodCount[i] == 0 && mmsiBadCount[i] > 0)
+                        {
+                            res.Add(keymap[i]);
+                        }
+                    }
+                }
+
+                //Console.WriteLine(s); // REMOVE
+                return res;
+            }
+            public ArrayList brokenMmsiAllCombDebug(Dictionary<UInt32, (VEC, VEC)> mmsiVecDict)
             {
                 ArrayList allres = new ArrayList();
                 List<UInt32> res = new List<UInt32>();
@@ -1009,7 +1099,9 @@ namespace CurrentEstim
         static void Main(string[] args)
         {
 
-            bool DEBUG = false; // true;
+            List<UInt32> dummyMMSIList = new List<UInt32> {999999990, 999999991, 999999992};
+            bool DEBUG = true; // true;
+            int maxTidx = 100000;
             List<string> inFiles;
             string outFile, errFile;
             BlackListManager2 blm2 = new BlackListManager2();
@@ -1082,7 +1174,7 @@ namespace CurrentEstim
 
                             //AISListをフィルタリング
                             // 8kt以下は無効 、 COGとHDGの差が5度以上は無効
-                            foreach (AIS a in AISList) if (a.SOG10 < 80 || differenceBetween2Angle(a.COG10 / 10.0, a.Hdg) >= 5) a.Valid = false;
+                            foreach (AIS a in AISList) if (a.SOG10 < 80 || differenceBetween2Angle(a.COG10 / 10.0, a.Hdg) >= 15) a.Valid = false;
 
                             // 3分以内に5度以上のCOG、HDG変化があればその間無効
                             TimeSpan Δt = new TimeSpan(0, 3, 0);
@@ -1100,6 +1192,7 @@ namespace CurrentEstim
                                         break;
                                     }
                             }
+                            int count = 0;
                             foreach (AIS ais in AISList) if (ais.Valid)
                                 {
                                     //gridを作成
@@ -1134,17 +1227,22 @@ namespace CurrentEstim
                                     g.E += (SinCos * ais.Vog.North - CosCos * ais.Vog.East);
                                     g.F += (float)Math.Pow(ais.Vog.North * SinHdg - ais.Vog.East * CosHdg, 2);
                                     g.count++;
+                                    count++;
                                     if (gi.dtIdx > maxDT) 
                                     { 
                                         maxDT = gi.dtIdx;
                                     }
                                 }
+                            if (dummyMMSIList.Contains(mmsi)) 
+                            {
+                                Console.WriteLine("MMSI:{0}, valid Count:{1}\n", mmsi, count);
+                            }
                             if (aisr == null) break;
                             mmsi = aisr.Mmsi;
                         } while (line < maxLine);
                     }
                 // bool CREATE_BLACKLIST = maxDT < 41064; // 日本時間2015/9/7 23:59以前でブラックリスト作成
-                bool CREATE_BLACKLIST = maxDT < 41056; // 世界時間9/1-8/7 24:00でブラックリスト作成
+                bool CREATE_BLACKLIST = maxDT < 41056; // 世界時間9/1-9/7 24:00でブラックリスト作成
                 if (CREATE_BLACKLIST)
                 {
                     logout("Creat black list mode = true");
@@ -1171,19 +1269,36 @@ namespace CurrentEstim
                         {
                             logout(string.Format("Creating black list... {0}/{1} tidx done (data count={2})", count, numTidxs, blm2.blackList.Count), false);
                             count += 1;
+                            
+                            if (DEBUG && count>maxTidx) break;
                             grid g = dicGrids[tidx];
+
+                            // dummyが処理されていることを告げる
+                            if (g.getMmsi().Any(item => dummyMMSIList.Contains(item))) 
+                            {
+                                Console.WriteLine("Start judging dummyMMSI in creating black list\n");
+                            }
 
                             // MMSIごとに固有値，固有ベクトルを計算
                             var mmsiSumValue = g.getMmsiSumValue();
                             var lambdaMmsiCur = g.calcCurMmsiLambda(mmsiSumValue);
 
                             // 悪いMMSIの検出
-                            var allres = g.brokenMmsiAllComb(lambdaMmsiCur);
-                            List<UInt32> brokenMmsi = (List<UInt32>)allres[0];
+                            List<UInt32> brokenMmsi;
+                            if (DEBUG)
+                            {
+                                var allres = g.brokenMmsiAllCombDebug(lambdaMmsiCur);
+                                brokenMmsi = (List<UInt32>)allres[0];
+                                // Debug情報の取得
+                                string brokenMmsiString = (string)allres[1];
+                                brokenMmsiLog[tidx] = brokenMmsiString;
+                            }
+                            else
+                            { 
+                                brokenMmsi = g.brokenMmsiAllComb(lambdaMmsiCur);
+                            }
 
                             // ログの更新
-                            string brokenMmsiString = (string)allres[1];
-                            brokenMmsiLog[tidx] = brokenMmsiString;
                             brokenMmsiCount[tidx] = brokenMmsi.Count;
 
                             // 出現したMMSI一覧リストの更新
@@ -1192,10 +1307,11 @@ namespace CurrentEstim
                             // ブラックリストの更新
                             if (brokenMmsi.Count > 0)
                             {
-                                blm2.updateBrokenMmsi(brokenMmsi);
+                                blm2.updateBrokenMmsi(brokenMmsi, tidx.dtIdx);
                             }
                         }
                     }
+                    blm2.save();
 
                     count = 0;
                     dataCount = 0;
@@ -1218,6 +1334,7 @@ namespace CurrentEstim
                     {
                         logout(string.Format("{0}/{1} tidx done (data count={2}, new mmsi count={3})", count, numTidxs, dataCount, newMmsiGridCount), false);
                         count += 1;
+                        if (DEBUG && count>maxTidx) break;
                         grid g = dicGrids[tidx];
 
 
@@ -1241,7 +1358,7 @@ namespace CurrentEstim
                                 var lambdaMmsiCur = g.calcCurMmsiLambda(mmsiSumValue);
 
                                 // 悪いMMSIの検出
-                                var allres = g.brokenMmsiAllComb(lambdaMmsiCur);
+                                var allres = g.brokenMmsiAllCombDebug(lambdaMmsiCur);
                                 List<UInt32> brokenMmsi = (List<UInt32>)allres[0];
 
                                 // 出現したMMSI一覧リストの更新
@@ -1250,7 +1367,7 @@ namespace CurrentEstim
                                 // ブラックリストの更新
                                 if (brokenMmsi.Count > 0)
                                 {
-                                    blm2.updateBrokenMmsi(brokenMmsi);
+                                    blm2.updateBrokenMmsi(brokenMmsi, tidx.dtIdx);
                                 }
                             }
                         }
@@ -1285,28 +1402,31 @@ namespace CurrentEstim
 
                         // 偏流の固有値とその方向の計算
                         (XY, XY, XY) curLambda;
-                        if (isFixedCur)
+                        if (!isFixedCur)
                         {
-                            curLambda = g.calcLambdaTargetMmsi(cur, mmsiVecDict, whiteMmsi);
+                            whiteMmsi = whiteBlackMmsi[0];
                         }
-                        else 
-                        { 
-                            curLambda = g.calcLambdaTargetMmsi(cur, mmsiVecDict, whiteBlackMmsi[0]);
-                        }
+                        curLambda = g.calcLambdaTargetMmsi(cur, mmsiVecDict, whiteMmsi);
 
                         if (cur.x == 999) continue;
 
                         // debug用のログ出力
                         if (DEBUG)
                         {
-                            if (whiteBlackMmsi[1].Count > 0)
+                            // if (whiteBlackMmsi[1].Count > 0 && Math.Abs(curLambda.Item1.x)>8 && curLambda.Item2.x > 10)
+                            //Console.WriteLine("is valid cur:{0}, lambda:{1}, blackCount:{2}, whiteCount:{3}", isValidCurValue(cur), curLambda.Item2.x, whiteBlackMmsi[1].Count, whiteMmsi.Count);
+                            //if (isValidCurValue(cur) && curLambda.Item2.x > 10 && whiteBlackMmsi[1].Count==0 && whiteMmsi.Count>4)
+                            //if (g.getMmsi().Any(item => dummyMMSIList.Contains(item)))
+                            if (!isValidCurValue(cur) && whiteBlackMmsi[1].Count>0)
                             {
+                                // 交点を利用した偏流計算
                                 List<XY> curInsec = g.calcCurWithInsecs();
                                 var lsmMmsiCur = g.calcCurMmsiLSM(mmsiSumValue);
                                 var lsmCur = g.calcCurLSM(mmsiSumValue);
                                 var lambdaMmsiCur = g.calcCurMmsiLambda(mmsiSumValue);
                                 //var lambdaCur = g.calcCurLambda(mmsiSumValue);
                                 var lambdaCur = g.calcCurLSM2(lambdaMmsiCur);
+                                if (!isValidCurValue(lambdaCur)) continue;
 
                                 dataCount += brokenMmsiCount[tidx];
 
@@ -1324,7 +1444,7 @@ namespace CurrentEstim
                                         if (i == j) continue;
                                         sw.WriteLine("{0}-{1}, insecX:{2}, insecY:{3}, numX:{4}, numY:{5}", i, j, insecs[i][j].Item1.x, insecs[i][j].Item1.y, insecs[i][j].Item2.x, insecs[i][j].Item2.y);
                                     }
-                                }
+                               }
                                 sw.WriteLine("NoBrokenLSM: curN:{0}, curE:{1}", cur.x, cur.y);
                                 sw.WriteLine("Min: curN:{0}, curE:{1}", curInsec[1].x, curInsec[1].y);
 
@@ -1355,11 +1475,14 @@ namespace CurrentEstim
                         }
                         else 
                         {
+                            // 11/20 追記，再実行・検証はまだしていない
+                            if (!isValidCurValue(cur)) continue;
                             sw.WriteLine("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}", tidx.dtIdx, tidx.latIdx, tidx.lonIdx, cur.x, cur.y, curLambda.Item1.x, curLambda.Item1.y, curLambda.Item2.x, curLambda.Item2.y, curLambda.Item3.x, curLambda.Item3.y);
                         }
 
                     }
                 }
+                blm2.save();
                 logout("Finished");
             }
         }

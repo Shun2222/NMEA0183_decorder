@@ -139,13 +139,19 @@ class Settei
         Program.logout("Output :" + dtFormat);
         using (StreamWriter swN = new StreamWriter(OutFolder + @"\AisCurr" + dtFormat + "N.csv"),
             swE = new StreamWriter(OutFolder + @"\AisCurr" + dtFormat + "E.csv"),
+            swCur1 = new StreamWriter(OutFolder + @"\AisCurr" + dtFormat + "Cur1.csv"),
+            swCur2 = new StreamWriter(OutFolder + @"\AisCurr" + dtFormat + "Cur2.csv"),
+            swLambda1 = new StreamWriter(OutFolder + @"\AisLambdar" + dtFormat + "Lambda1.csv"),
+            swLambda2 = new StreamWriter(OutFolder + @"\AisLambdar" + dtFormat + "Lambda2.csv"),
+            swPhi1 = new StreamWriter(OutFolder + @"\AisPhir" + dtFormat + "Phi1.csv"),
+            swPhi2 = new StreamWriter(OutFolder + @"\AisPhir" + dtFormat + "Phi2.csv"),
             swD = new StreamWriter(OutFolder + @"\AisCurr" + dtFormat + "D.csv"),
             swSpd = new StreamWriter(OutFolder + @"\AisCurr" + dtFormat + "Spd.csv"),
             swDeg = new StreamWriter(OutFolder + @"\AisCurr" + dtFormat + "Deg.csv"))
         {
             for (int LatIdx = LatIdxMax; LatIdx >= LatIdxMin; LatIdx--)
             {
-                string sN = "", sE = "", sD = "", sSpd = "", sDeg = "";
+                string sN = "", sE = "", sCur1 = "", sCur2 = "", sLambda1 = "", sLambda2 = "", sPhi1 = "", sPhi2 = "", sD = "", sSpd = "", sDeg = "";
                 for (int LonIdx = LonIdxMin; LonIdx <= LonIdxMax; LonIdx++)
                 {
                     float A11 = Map[DtIdx % h, LatIdx - LatIdxMin, LonIdx - LonIdxMin, 0],
@@ -160,22 +166,46 @@ class Settei
                         double
                             x = (A22 * B1 - A12 * B2) / D,
                             y = (-A12 * B1 + A11 * B2) / D,
+                            lambda1 = (A11+A22-(Math.Pow(Math.Sqrt(A11-A22),2) + 4*Math.Pow(A12,2)))/2,
+                            lambda2 = (A11+A22+(Math.Pow(Math.Sqrt(A11-A22),2) + 4*Math.Pow(A12,2)))/2,
+                            phi1 = Math.Atan2(lambda1 - A11, A12),
+                            phi2 = Math.Atan2(lambda2 - A11, A12),
+                            cur1 = (B1 * Math.Cos(phi1)+B2*Math.Sin(phi1))/lambda1,
+                            cur2 = (B1 * Math.Cos(phi2)+B2*Math.Sin(phi2))/lambda2,
                             Spd = Math.Sqrt(x * x + y * y),
                             Deg = Math.Atan2(y, x) / Math.PI * 180;
                         sN += string.Format("{0:0.00}", x);
                         sE += string.Format("{0:0.00}", y);
+                        sCur1 += string.Format("{0:0.00}", cur1);
+                        sCur2 += string.Format("{0:0.00}", cur2);
+                        sLambda1 += string.Format("{0:0.00}", lambda1);
+                        sLambda2 += string.Format("{0:0.00}", lambda2);
+                        sPhi1 += string.Format("{0:0.00}", phi1);
+                        sPhi2 += string.Format("{0:0.00}", phi2);
                         sD += string.Format("{0:0.00}", D);
                         sSpd += string.Format("{0:0.00}", Spd);
                         sDeg += string.Format("{0:0.00}", Deg);
                     }
                     sN += ",";
                     sE += ",";
+                    sCur1 += ",";
+                    sCur2 += ",";
+                    sLambda1 += ",";
+                    sLambda2 += ",";
+                    sPhi1 += ",";
+                    sPhi2 += ",";
                     sD += ",";
                     sSpd += ",";
                     sDeg += ",";
                 }
                 swN.WriteLine(sN.Substring(0, sN.Length - 1));
                 swE.WriteLine(sE.Substring(0, sE.Length - 1));
+                swCur1.WriteLine(sCur1.Substring(0, sCur1.Length - 1));
+                swCur2.WriteLine(sCur2.Substring(0, sCur2.Length - 1));
+                swLambda1.WriteLine(sLambda1.Substring(0, sLambda1.Length - 1));
+                swLambda2.WriteLine(sLambda2.Substring(0, sLambda2.Length - 1));
+                swPhi1.WriteLine(sPhi1.Substring(0, sPhi1.Length - 1));
+                swPhi2.WriteLine(sPhi2.Substring(0, sPhi2.Length - 1));
                 swD.WriteLine(sD.Substring(0, sD.Length - 1));
                 swSpd.WriteLine(sSpd.Substring(0, sSpd.Length - 1));
                 swDeg.WriteLine(sDeg.Substring(0, sDeg.Length - 1));
@@ -240,7 +270,7 @@ class Program
             List<string> _outFolder = ap.getArgs('o', "OutFolder", "出力する" + outExt + "ファイルを保存するフォルダ", kind: argparse.Kind.ExistFolder, quantity: argparse.Quantity.Null_Or_1);
 
             if (ap.HasError) { Console.Error.Write(ap.ErrorOut()); return; }
-            outFolder = (_outFolder != null && _outFolder.Count > 0) ? _outFolder[0] : Path.GetDirectoryName(inFiles[0]);
+            outFolder = (_outFolder != null && _outFolder.Count > 0) ? _outFolder[0] : "../../data/original_ais";
             logFile = outFolder + @"\log.txt";
         }
 

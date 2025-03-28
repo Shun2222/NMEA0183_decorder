@@ -128,7 +128,7 @@ namespace CurrentEstim
 
                             //AISListをフィルタリング
                             // 8kt以下は無効 、 COGとHDGの差が5度以上は無効
-                            foreach (AIS a in AISList) if (a.SOG10 < 80 || differenceBetween2Angle(a.COG10 / 10.0, a.Hdg) >= 5) a.Valid = false;
+                            foreach (AIS a in AISList) if (a.SOG10 < 80 || differenceBetween2Angle(a.COG10 / 10.0, a.Hdg) >= 15) a.Valid = false;
 
                             // 3分以内に5度以上のCOG、HDG変化があればその間無効
                             TimeSpan Δt = new TimeSpan(0, 3, 0);

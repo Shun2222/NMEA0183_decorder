@@ -23,12 +23,12 @@ using System.Runtime.InteropServices;
 // Close()では、tmpDtIdxMinからDtIdxMaxまでをcsv出力
 class Settei
 {
-    public const int PoolSize = 6;
+    public const int PoolSize = 3; // PoolSizeの変更で設定しなおす変数：LatIdxMax, LatIdxMin, LonIdxMax, LonIdxMin, outFolder, nan_map_pooled{pool size}.csv
     public const int
-        LatIdxMax = 300, //1800, 
-        LatIdxMin = 126, //719,
-        LonIdxMax = 899, //5401,
-        LonIdxMin = 702; //4211;
+        LatIdxMax = 600,//3: 600, 1: 1800, 6:300
+        LatIdxMin = 251,//3: 251, 1: 719, 6:126
+        LonIdxMax = 1800,//3: 1800, 1: 5401, 6:899
+        LonIdxMin = 1404;//3: 1404, 1: 4211, 6:702;
     public static int
         DtIdxMax,
         DtIdxMin;
@@ -81,7 +81,7 @@ class Settei
                         9];//A11,A12,A22,B1,B2
 
         // 緯度経度の有効無効の二次元マップを作成
-        using (StreamReader sr = new StreamReader("cur.csv"))
+        using (StreamReader sr = new StreamReader("nan_map_pooled3.csv"))
         {
             for (int i = Settei.LatIdxMax - Settei.LatIdxMin; i >= 0; i--)
             {
@@ -278,7 +278,7 @@ class ais3Comparer : IComparer<ais3>
 
 class Program
 {
-    const string inExt = "ais3_2", outExt = "csv";
+    const string inExt = "ais4", outExt = "csv";
     static string logFile;
 
     static void Main(string[] args)
@@ -296,7 +296,7 @@ class Program
 
             if (ap.HasError) { Console.Error.Write(ap.ErrorOut()); return; }
             //outFolder = (_outFolder != null && _outFolder.Count > 0) ? _outFolder[0] : Path.GetDirectoryName(inFiles[0]);
-            outFolder = (_outFolder != null && _outFolder.Count > 0) ? _outFolder[0] : "../../data/ais/ais_remove_badmmsi_pool6";
+            outFolder = (_outFolder != null && _outFolder.Count > 0) ? _outFolder[0] : "../../data/ais/ais_removedBroken_pool3_dummy";
             logFile = outFolder + @"\log.txt";
         }
 

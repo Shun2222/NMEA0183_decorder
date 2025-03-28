@@ -1,0 +1,94 @@
+// 異常船排除関数
+var mmsiSumValue = g.getMmsiSumValue();
+    // HDG sum
+    SinHdg = (Single)Math.Sin(hdg * Math.PI / 180),
+    CosHdg = (Single)Math.Cos(hdg * Math.PI / 180),
+    SinHdg = (Single)Math.Sin(hdg * Math.PI / 180),
+    CosHdg = (Single)Math.Cos(hdg * Math.PI / 180),
+    value[0] += CosCos;
+    value[1] += SinCos;
+    value[2] += SinSin;
+    value[3] += (SinCos * vogE - SinSin * vogN);
+    value[4] += (SinCos * vogN - CosCos * vogE);
+    value[5] += (Single)Math.Pow(vogN * SinHdg - vogE * CosHdg, 2);
+
+var mmsiVecDict = g.calcCurMmsiLambda(mmsiSumValue);
+    // HDG->CurHdg
+    C = value[0],
+    B = -value[1],
+    A = value[2],
+    D = value[3],
+    E = value[4],
+    F = value[5];
+    θ1Rad = (Math.Abs(C - A) < 1e-08) ? Math.PI / 2 : Math.Atan2(-2 * B, C - A) / 2,
+    θ2Rad = θ1Rad + Math.PI / 2,
+    Cosθ1 = Math.Cos(θ1Rad),
+    Sinθ1 = Math.Sin(θ1Rad),
+    Cosθ2 = Math.Cos(θ2Rad),
+    Sinθ2 = Math.Sin(θ2Rad);
+    Lambda1 = (Math.Abs(Cosθ1) > Math.Abs(Sinθ1)) ? A + B * Sinθ1 / Cosθ1 : B * Cosθ1 / Sinθ1 + C,
+    Lambda2 = (Math.Abs(Cosθ2) > Math.Abs(Sinθ2)) ? A + B * Sinθ2 / Cosθ2 : B * Cosθ2 / Sinθ2 + C;
+
+// 異常船排除
+XY cur = g.calcCurLSMTargetMmsi(mmsiVecDict, g.getMmsi());
+    // CurHdg->N, E
+    Sin = (Single)Math.Sin(vec.direction * Math.PI / 180),
+    Cos = (Single)Math.Cos(vec.direction * Math.PI / 180),
+    sumValue[0] += w * CosCos;
+    sumValue[1] += w * SinCos;
+    sumValue[2] += w * SinSin;
+    sumValue[3] += w * Cos * (Single)vec.norm;
+    sumValue[4] += w * Sin * (Single)vec.norm;
+    A11 = sumValue[0],
+    A12 = sumValue[1],
+    A22 = sumValue[2],
+    B1 = sumValue[3],
+    B2 = sumValue[4],
+    F = sumValue[5];
+    xy.x = (A22 * B1 - A12 * B2) / D;
+    xy.y = (-A12 * B1 + A11 * B2) / D;
+if (whiteBlackMmsi[1].Count > 0) 
+{ 
+    cur = g.calcCurLSMTargetMmsi(mmsiVecDict, whiteMmsi);
+}
+
+(XY, XY, XY) curLambda;
+curLambda = g.calcLambdaTargetMmsi(cur, mmsiVecDict, whiteMmsi); -> cur lambda psi
+    // CurHdg->Lambda1, Lambda2
+    sumValue[0] += w * Sin * Sin; ====>>>> Cos Cos
+    sumValue[1] += w * Cos * Sin; 
+    sumValue[2] += w * Cos * Cos; ====>>>> Sin Sin
+    lambda12.x = (Single)(sumValue[0] + sumValue[2] - Math.Sqrt(Math.Pow((double)(sumValue[0] - sumValue[2]), 2) + 4*Math.Pow((double)sumValue[1], 2)))/2;
+    lambda12.y = (Single)(sumValue[0] + sumValue[2] + Math.Sqrt(Math.Pow((double)(sumValue[0] - sumValue[2]), 2) + 4*Math.Pow((double)sumValue[1], 2)))/2;
+    psi.x = (Single)(Math.Atan2((double)(lambda12.x-sumValue[0]), (double)sumValue[1])*180/(Math.PI));
+    psi.y = (Single)(Math.Atan2((double)(lambda12.y-sumValue[0]), (double)sumValue[1])*180/(Math.PI));
+    curLambda.x = cur.x * (Single)Math.Cos(psi.x*Math.PI/180) + cur.y * (Single)Math.Sin(psi.x*Math.PI/180);
+    curLambda.y = cur.x * (Single)Math.Cos(psi.y*Math.PI/180) + cur.y * (Single)Math.Sin(psi.y*Math.PI/180);
+
+
+sw.WriteLine("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}", tidx.dtIdx, tidx.latIdx, tidx.lonIdx, cur.x, cur.y, curLambda.Item1.x, curLambda.Item1.y, curLambda.Item2.x, curLambda.Item2.y, curLambda.Item3.x, curLambda.Item3.y);
+
+
+// Conventional Method
+float A11 = Map[DtIdx % h, LatIdx - LatIdxMin, LonIdx - LonIdxMin, 0],
+      A12 = Map[DtIdx % h, LatIdx - LatIdxMin, LonIdx - LonIdxMin, 1],
+      A22 = Map[DtIdx % h, LatIdx - LatIdxMin, LonIdx - LonIdxMin, 2],
+      B1 = Map[DtIdx % h, LatIdx - LatIdxMin, LonIdx - LonIdxMin, 3],
+      B2 = Map[DtIdx % h, LatIdx - LatIdxMin, LonIdx - LonIdxMin, 4],
+D = A11 * A22 - A12 * A12;
+Settei.AddMap(dtidx, latidx, lonidx, 0, w * coscos);
+Settei.AddMap(dtidx, latidx, lonidx, 1, w * sincos);
+Settei.AddMap(dtidx, latidx, lonidx, 2, w * sinsin);
+Settei.AddMap(dtidx, latidx, lonidx, 3, w * cosF);
+Settei.AddMap(dtidx, latidx, lonidx, 4, w * sinF);
+
+x = (A22 * B1 - A12 * B2) / D,
+y = (-A12 * B1 + A11 * B2) / D,
+lambda1 = (A11+A22-Math.Sqrt(Math.Pow(A11-A22,2) + 4*Math.Pow(A12,2)))/2,
+lambda2 = (A11+A22+Math.Sqrt(Math.Pow(A11-A22,2) + 4*Math.Pow(A12,2)))/2,
+phi1 = Math.Atan2(lambda1 - A11, A12),
+phi2 = Math.Atan2(lambda2 - A11, A12),
+cur1 = (B1 * Math.Cos(phi1)+B2*Math.Sin(phi1))/lambda1,
+cur2 = (B1 * Math.Cos(phi2)+B2*Math.Sin(phi2))/lambda2,
+Spd = Math.Sqrt(x * x + y * y),
+Deg = Math.Atan2(y, x) / Math.PI * 180;

@@ -168,15 +168,23 @@ namespace CurrentEstim
     { 
         public UInt32 isBroken;
         public UInt32 count;
+        public UInt16 brokenDT;
         public MmsiInfo() 
         { 
             isBroken = 0;
             count = 1;
+            brokenDT = 0;
         }
         public MmsiInfo(UInt32 ib, UInt32 c) 
         { 
             isBroken = ib;
             count = c;
+        }
+        public MmsiInfo(UInt32 ib, UInt32 c, UInt16 bdt) 
+        { 
+            isBroken = ib;
+            count = c;
+            brokenDT = bdt;
         }
     } 
 
@@ -205,6 +213,7 @@ namespace CurrentEstim
                     ss += dicItem.Key.ToString();
                     ss += ","+dicItem.Value.isBroken.ToString();
                     ss += ","+dicItem.Value.count.ToString();
+                    ss += ","+dicItem.Value.brokenDT.ToString();
                     sw.WriteLine(ss);
                 }
             }
@@ -242,7 +251,7 @@ namespace CurrentEstim
                                 sa = Array.ConvertAll(sa, ss => ss.Trim());
 
                                 UInt32 mmsi = UInt32.Parse(sa[0]);
-                                MmsiInfo mmsiInfo = new MmsiInfo(UInt32.Parse(sa[1]), UInt32.Parse(sa[2]));
+                                MmsiInfo mmsiInfo = new MmsiInfo(UInt32.Parse(sa[1]), UInt32.Parse(sa[2]), UInt16.Parse(sa[3]));
                                 mmsiDict[mmsi] = mmsiInfo;
                                 if (mmsiInfo.isBroken == 1)
                                 {
@@ -260,19 +269,20 @@ namespace CurrentEstim
                 using (StreamWriter sw = new StreamWriter(fileName)) { }
             }
         }
-        public void updateBrokenMmsi(UInt32 mmsi) 
+        public void updateBrokenMmsi(UInt32 mmsi, UInt16 dtidx) 
         {
             mmsiDict[mmsi].isBroken = 1;
+            mmsiDict[mmsi].brokenDT = dtidx;
             if (!blackList.Contains(mmsi)) 
             { 
                 blackList.Add (mmsi);
             }
         }
-        public void updateBrokenMmsi(List<UInt32> mmsiList) 
+        public void updateBrokenMmsi(List<UInt32> mmsiList, UInt16 dtidx) 
         { 
             foreach(UInt32 mmsi in mmsiList) 
             {
-                updateBrokenMmsi(mmsi);
+                updateBrokenMmsi(mmsi, dtidx);
             }
         }
         public bool isContain(UInt32 mmsi) 
